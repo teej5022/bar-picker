@@ -374,9 +374,7 @@ function LoginPage({ onAuthenticate, authError }) {
           </button>
         </form>
 
-        <p>
-          Admin login: <code>admin</code> / <code>barpicker2026</code>
-        </p>
+        <p>Admins should use their assigned credentials.</p>
         <p>Subscribers need an invite code before they can create an account.</p>
         {authError ? <p className="error-text">{authError}</p> : null}
       </section>
