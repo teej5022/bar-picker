@@ -970,6 +970,17 @@ function WheelPage({ bars, onLogout }) {
   const [rotation, setRotation] = useState(0)
   const [finalIndex, setFinalIndex] = useState(null)
 
+  const wheelSize = 420
+  const center = wheelSize / 2
+  const outerRadius = 200
+  const innerRadius = 86
+  const labelRadius = 150
+  const labelMode = bars.length > 24 ? 'index' : 'name'
+  const wheelColors = useMemo(
+    () => ['#f5d0fe', '#bfdbfe', '#fde68a', '#fecdd3', '#d9f99d', '#ddd6fe', '#fed7aa'],
+    []
+  )
+
   const handleLogoutClick = () => {
     onLogout()
     navigate('/login?loggedOut=1', { replace: true })
@@ -978,18 +989,71 @@ function WheelPage({ bars, onLogout }) {
   const spinWheel = () => {
     if (bars.length === 0 || spinning) return
     setSpinning(true)
-    // Pick a random bar
     const idx = Math.floor(Math.random() * bars.length)
     setFinalIndex(idx)
-    // Calculate rotation so the picked bar lands at top
     const sliceAngle = 360 / bars.length
-    const targetAngle = 360 - idx * sliceAngle + 360 * 5 // 5 full spins for effect
-    setRotation(targetAngle)
+    const selectedCenterAngle = idx * sliceAngle + sliceAngle / 2
+    const pointerAngle = 270
+    const fullSpinsPerClick = 5
+
+    setRotation((previousRotation) => {
+      const normalizedPreviousRotation =
+        ((previousRotation % 360) + 360) % 360
+      const targetNormalizedRotation =
+        (pointerAngle - selectedCenterAngle + 360) % 360
+      const clockwiseDelta =
+        (targetNormalizedRotation - normalizedPreviousRotation + 360) % 360
+
+      return previousRotation + fullSpinsPerClick * 360 + clockwiseDelta
+    })
     setTimeout(() => {
       setPickedBar(bars[idx])
       setSpinning(false)
     }, 2200)
   }
+
+  const wheelSegments = useMemo(() => {
+    if (bars.length === 0) return []
+
+    const sliceAngle = (2 * Math.PI) / bars.length
+    return bars.map((bar, idx) => {
+      const startAngle = idx * sliceAngle
+      const endAngle = startAngle + sliceAngle
+      const midAngle = startAngle + sliceAngle / 2
+
+      const x1 = center + outerRadius * Math.cos(startAngle)
+      const y1 = center + outerRadius * Math.sin(startAngle)
+      const x2 = center + outerRadius * Math.cos(endAngle)
+      const y2 = center + outerRadius * Math.sin(endAngle)
+      const x3 = center + innerRadius * Math.cos(endAngle)
+      const y3 = center + innerRadius * Math.sin(endAngle)
+      const x4 = center + innerRadius * Math.cos(startAngle)
+      const y4 = center + innerRadius * Math.sin(startAngle)
+      const largeArc = sliceAngle > Math.PI ? 1 : 0
+
+      const path = `M${x1},${y1} A${outerRadius},${outerRadius} 0 ${largeArc} 1 ${x2},${y2} L${x3},${y3} A${innerRadius},${innerRadius} 0 ${largeArc} 0 ${x4},${y4} Z`
+      const labelX = center + labelRadius * Math.cos(midAngle)
+      const labelY = center + labelRadius * Math.sin(midAngle)
+      const textAngle = (midAngle * 180) / Math.PI
+      const flipText = textAngle > 90 && textAngle < 270
+      const textRotation = textAngle + (flipText ? 180 : 0)
+      const rawLabel = labelMode === 'index' ? String(idx + 1) : bar.name
+      const label =
+        labelMode === 'name' && rawLabel.length > 15
+          ? `${rawLabel.slice(0, 13)}…`
+          : rawLabel
+
+      return {
+        bar,
+        idx,
+        path,
+        label,
+        labelX,
+        labelY,
+        textRotation,
+      }
+    })
+  }, [bars, center, innerRadius, labelMode, labelRadius, outerRadius])
 
   return (
     <main className="static-page-shell">
@@ -1019,82 +1083,79 @@ function WheelPage({ bars, onLogout }) {
 
         <p>Use the wheel to quickly pick a bar from your current list.</p>
 
+        {pickedBar ? (
+          <article className="wheel-result wheel-result-top">
+            <h2>{pickedBar.name}</h2>
+            <p>{pickedBar.address}</p>
+            {pickedBar.notes ? <p>{pickedBar.notes}</p> : null}
+          </article>
+        ) : (
+          <p className="wheel-result-hint">
+            {bars.length > 0 ? 'Spin to choose a bar.' : 'Add bars to use the wheel.'}
+          </p>
+        )}
+
         <div className="wheel-shell">
-          <div className="wheel-circle" style={{ minHeight: 360, width: 360, height: 360, position: 'relative', margin: '0 auto', border: '2px dashed #aa3bff', borderRadius: '50%', background: 'rgba(170,59,255,0.08)' }}>
+          <div className="wheel-circle">
             {bars.length > 0 ? (
-              <svg width="360" height="360" viewBox="0 0 360 360" style={{ display: 'block', margin: '0 auto', transform: `rotate(${rotation}deg)`, transition: spinning ? 'transform 2.2s cubic-bezier(.32,.72,.52,1.01)' : 'none' }}>
-                {/* Draw hollow slices */}
-                {bars.map((bar, idx) => {
-                  const sliceAngle = 2 * Math.PI / bars.length
-                  const startAngle = idx * sliceAngle
-                  const endAngle = startAngle + sliceAngle
-                  const innerRadius = 80
-                  const outerRadius = 180
-                  const x1 = 180 + outerRadius * Math.cos(startAngle)
-                  const y1 = 180 + outerRadius * Math.sin(startAngle)
-                  const x2 = 180 + outerRadius * Math.cos(endAngle)
-                  const y2 = 180 + outerRadius * Math.sin(endAngle)
-                  const x3 = 180 + innerRadius * Math.cos(endAngle)
-                  const y3 = 180 + innerRadius * Math.sin(endAngle)
-                  const x4 = 180 + innerRadius * Math.cos(startAngle)
-                  const y4 = 180 + innerRadius * Math.sin(startAngle)
-                  const largeArc = sliceAngle > Math.PI ? 1 : 0
-                  // More vivid alternating colors
-                  const colors = ['#aa3bff', '#ffb347', '#3bbaff', '#ff3b6b', '#aaff3b', '#ffd700']
-                  const color = colors[idx % colors.length]
+              <svg
+                width={wheelSize}
+                height={wheelSize}
+                viewBox={`0 0 ${wheelSize} ${wheelSize}`}
+                className="wheel-svg"
+                style={{
+                  transform: `rotate(${rotation}deg)`,
+                  transition: spinning
+                    ? 'transform 2.2s cubic-bezier(.32,.72,.52,1.01)'
+                    : 'none',
+                }}
+              >
+                {wheelSegments.map((segment) => {
+                  const isSelected =
+                    segment.idx === finalIndex && !spinning
+
                   return (
-                    <g key={bar.id}>
+                    <g key={segment.bar.id}>
                       <path
-                        d={`M${x1},${y1} A${outerRadius},${outerRadius} 0 ${largeArc} 1 ${x2},${y2} L${x3},${y3} A${innerRadius},${innerRadius} 0 ${largeArc} 0 ${x4},${y4} Z`}
-                        fill={color}
-                        fillOpacity={0.28}
-                        stroke="#fff"
-                        strokeWidth={2}
+                        d={segment.path}
+                        fill={wheelColors[segment.idx % wheelColors.length]}
+                        fillOpacity={isSelected ? 0.85 : 0.52}
+                        stroke={isSelected ? 'var(--accent)' : '#ffffff'}
+                        strokeWidth={isSelected ? 4 : 1.6}
+                        className={isSelected ? 'wheel-segment-selected' : ''}
                       />
-                      {/* Separation line */}
-                      <line
-                        x1={180}
-                        y1={180}
-                        x2={180 + outerRadius * Math.cos(startAngle)}
-                        y2={180 + outerRadius * Math.sin(startAngle)}
-                        stroke="#fff"
-                        strokeWidth={2}
-                      />
-                      {/* Bar name straight, centered in slice */}
                       <text
-                        x={180 + 130 * Math.cos(startAngle + sliceAngle / 2)}
-                        y={180 + 130 * Math.sin(startAngle + sliceAngle / 2)}
+                        x={segment.labelX}
+                        y={segment.labelY}
+                        transform={`rotate(${segment.textRotation} ${segment.labelX} ${segment.labelY})`}
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        fontSize="14"
-                        fill="#08060d"
-                        style={{ fontWeight: idx === finalIndex && !spinning ? 'bold' : 'normal', pointerEvents: 'none' }}
+                        className="wheel-label"
+                        style={{
+                          fontWeight: isSelected ? 700 : 500,
+                          fontSize: labelMode === 'index' ? 15 : 11,
+                        }}
                       >
-                        {bar.name.length > 18 ? bar.name.slice(0, 16) + '…' : bar.name}
+                        {segment.label}
                       </text>
                     </g>
                   )
                 })}
-                {/* Central hub (smaller, hollow) */}
-                <circle cx={180} cy={180} r={60} fill="#fff" fillOpacity={0.7} stroke="#aa3bff" strokeWidth={3} />
-                <text x={180} y={180} textAnchor="middle" dominantBaseline="middle" fontSize="18" fill="#aa3bff" fontWeight="bold">DGQE</text>
               </svg>
             ) : (
-              <span style={{ fontSize: 22, color: '#aa3bff' }}>Ready to spin</span>
+              <span className="wheel-empty">Ready to spin</span>
             )}
-            {/* Pointer */}
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: '50%',
-              width: 0,
-              height: 0,
-              borderLeft: '18px solid transparent',
-              borderRight: '18px solid transparent',
-              borderBottom: '36px solid #aa3bff',
-              transform: 'translateX(-50%)',
-              zIndex: 2,
-            }} />
+            <div className="wheel-center-hub" aria-live="polite">
+              <p className="wheel-center-label">{pickedBar ? 'Selected' : 'Ready'}</p>
+              <p className="wheel-center-name">
+                {pickedBar
+                  ? pickedBar.name.length > 18
+                    ? `${pickedBar.name.slice(0, 16)}…`
+                    : pickedBar.name
+                  : 'DGQE'}
+              </p>
+            </div>
+            <div className="wheel-pointer" />
           </div>
           <button
             type="button"
@@ -1105,17 +1166,31 @@ function WheelPage({ bars, onLogout }) {
           >
             {spinning ? 'Spinning...' : 'Spin wheel'}
           </button>
-        </div>
 
-        {pickedBar ? (
-          <article className="wheel-result">
-            <h2>{pickedBar.name}</h2>
-            <p>{pickedBar.address}</p>
-            {pickedBar.notes ? <p>{pickedBar.notes}</p> : null}
-          </article>
-        ) : (
-          <p>{bars.length > 0 ? 'Spin to choose a bar.' : 'Add bars to use the wheel.'}</p>
-        )}
+          {bars.length > 24 ? (
+            <div className="wheel-legend" aria-label="Wheel label legend">
+              {bars.map((bar, idx) => {
+                const selected = idx === finalIndex && !spinning
+                return (
+                  <p
+                    key={bar.id}
+                    className={`wheel-legend-item${selected ? ' selected' : ''}`}
+                  >
+                    <span
+                      className="wheel-legend-index"
+                      style={{
+                        background: wheelColors[idx % wheelColors.length],
+                      }}
+                    >
+                      {idx + 1}
+                    </span>
+                    <span className="wheel-legend-name">{bar.name}</span>
+                  </p>
+                )
+              })}
+            </div>
+          ) : null}
+        </div>
       </section>
     </main>
   )
