@@ -14,7 +14,7 @@ function SiteBanner() {
   return (
     <div className="site-banner">
       <img
-        src="/logos/1000001922.jpg"
+        src={`${import.meta.env.BASE_URL}logos/1000001922.jpg`}
         alt="Distinguished Gentlemen of Questionable Establishments logo"
         className="site-logo-cover"
       />
