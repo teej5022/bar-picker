@@ -10,6 +10,27 @@ import {
 } from 'react-router-dom'
 import './App.css'
 
+function SiteBanner() {
+  return (
+    <div className="site-banner">
+      <img
+        src="/logos/1000001922.jpg"
+        alt="Distinguished Gentlemen of Questionable Establishments logo"
+        className="site-logo-cover"
+      />
+    </div>
+  )
+}
+
+function PageCard({ children, ...rest }) {
+  return (
+    <section className="static-page-card" {...rest}>
+      <SiteBanner />
+      {children}
+    </section>
+  )
+}
+
 const seedBars = [
   {
     id: 'homy-inn-1',
@@ -355,16 +376,17 @@ const readStoredMonthlyPick = () => {
     if (!storedPick) {
       return null
     }
-
     const parsedPick = JSON.parse(storedPick)
     if (
-      typeof parsedPick?.monthKey !== 'string' ||
-      typeof parsedPick?.barId !== 'string'
+      parsedPick &&
+      typeof parsedPick === 'object' &&
+      typeof parsedPick.monthKey === 'string' &&
+      typeof parsedPick.barId === 'string'
     ) {
-      return null
+      return parsedPick
     }
 
-    return parsedPick
+    return null
   } catch {
     return null
   }
@@ -511,8 +533,8 @@ function LoginPage({ onAuthenticate, authError }) {
 
   return (
     <main className="login-shell">
+      <SiteBanner />
       <section className="login-card">
-        <p className="eyebrow">Shared access</p>
         <h1>Bar Picker Login</h1>
         <p>Admins send invites. Subscribers create their own accounts.</p>
         {loggedOut ? (
@@ -644,7 +666,7 @@ function LoginPage({ onAuthenticate, authError }) {
         <p>Admins should use their assigned credentials.</p>
         <p>Subscribers need an invite code before they can create an account.</p>
         {authError ? <p className="error-text">{authError}</p> : null}
-      </section>
+        </section>
     </main>
   )
 }
@@ -669,25 +691,16 @@ function BarsPage({
 
   return (
     <main className="static-page-shell">
-      <section className="static-page-card" aria-live="polite">
-        <p className="eyebrow">Bar directory</p>
+      <PageCard aria-live="polite">
         <div className="top-controls">
           <button type="button" className="ghost" onClick={handleLogoutClick}>
             Log out
           </button>
           <nav className="top-nav" aria-label="Primary">
-            <NavLink to="/home" className={getNavLinkClassName}>
-              Home
-            </NavLink>
-            <NavLink to="/bars" className={getNavLinkClassName}>
-              Bars
-            </NavLink>
-            <NavLink to="/bylaws" className={getNavLinkClassName}>
-              Bylaws
-            </NavLink>
-            <NavLink to="/wheel" className={getNavLinkClassName}>
-              Wheel
-            </NavLink>
+            <NavLink to="/home" className={getNavLinkClassName}>Home</NavLink>
+            <NavLink to="/bars" className={getNavLinkClassName}>Bars</NavLink>
+            <NavLink to="/bylaws" className={getNavLinkClassName}>Bylaws</NavLink>
+            <NavLink to="/wheel" className={getNavLinkClassName}>Wheel</NavLink>
           </nav>
         </div>
 
@@ -782,7 +795,7 @@ function BarsPage({
             </article>
           ) : null}
         </div>
-      </section>
+      </PageCard>
     </main>
   )
 }
@@ -830,25 +843,16 @@ function HomePage({ onLogout, bars, monthlyPick }) {
 
   return (
     <main className="static-page-shell">
-      <section className="static-page-card">
-        <p className="eyebrow">Home</p>
+        <PageCard>
         <div className="top-controls">
           <button type="button" className="ghost" onClick={handleLogoutClick}>
             Log out
           </button>
           <nav className="top-nav" aria-label="Primary">
-            <NavLink to="/home" className={getNavLinkClassName}>
-              Home
-            </NavLink>
-            <NavLink to="/bars" className={getNavLinkClassName}>
-              Bars
-            </NavLink>
-            <NavLink to="/bylaws" className={getNavLinkClassName}>
-              Bylaws
-            </NavLink>
-            <NavLink to="/wheel" className={getNavLinkClassName}>
-              Wheel
-            </NavLink>
+              <NavLink to="/home" className={getNavLinkClassName}>Home</NavLink>
+              <NavLink to="/bars" className={getNavLinkClassName}>Bars</NavLink>
+              <NavLink to="/bylaws" className={getNavLinkClassName}>Bylaws</NavLink>
+              <NavLink to="/wheel" className={getNavLinkClassName}>Wheel</NavLink>
           </nav>
         </div>
 
@@ -887,7 +891,7 @@ function HomePage({ onLogout, bars, monthlyPick }) {
             <p>Add bars to generate a monthly pick.</p>
           )}
         </div>
-      </section>
+      </PageCard>
     </main>
   )
 }
@@ -902,63 +906,72 @@ function BylawsPage({ onLogout }) {
 
   return (
     <main className="static-page-shell">
-      <section className="static-page-card">
-        <p className="eyebrow">Club handbook</p>
+      <PageCard>
         <div className="top-controls">
           <button type="button" className="ghost" onClick={handleLogoutClick}>
             Log out
           </button>
           <nav className="top-nav" aria-label="Primary">
-            <NavLink to="/home" className={getNavLinkClassName}>
-              Home
-            </NavLink>
-            <NavLink to="/bars" className={getNavLinkClassName}>
-              Bars
-            </NavLink>
-            <NavLink to="/bylaws" className={getNavLinkClassName}>
-              Bylaws
-            </NavLink>
-            <NavLink to="/wheel" className={getNavLinkClassName}>
-              Wheel
-            </NavLink>
+            <NavLink to="/home" className={getNavLinkClassName}>Home</NavLink>
+            <NavLink to="/bars" className={getNavLinkClassName}>Bars</NavLink>
+            <NavLink to="/bylaws" className={getNavLinkClassName}>Bylaws</NavLink>
+            <NavLink to="/wheel" className={getNavLinkClassName}>Wheel</NavLink>
           </nav>
         </div>
 
         <h1 className="page-title">Bylaws</h1>
 
-        <div className="bylaws-text">
+        <section className="bylaws-article">
           <h2>Article I - Membership</h2>
-          <ol>
+          <ol className="bylaws-list">
             <li>Membership is reserved for gentlemen of sound character and adaptable standards.</li>
-            <li>A Distinguished Gentleman must demonstrate commitment to the second Saturday gathering and a readiness to explore new establishments without prejudice.</li>
+            <li>
+              A Distinguished Gentleman must demonstrate commitment to the second Saturday gathering and a readiness to explore new establishments without prejudice.
+            </li>
             <li>All members shall treat staff, patrons, and premises with courtesy and proper respect.</li>
             <li>Formal attire not required.</li>
           </ol>
+        </section>
+
+        <section className="bylaws-article">
           <h2>Article II - Assembly</h2>
-          <ol>
+          <ol className="bylaws-list">
             <li>The Distinguished Gentlemen shall assemble on the second Saturday of each month, starting at 7:00pm.</li>
-            <li>Each gathering shall occur at a different establishment, selected to ensure proper rotation and continued discovery.</li>
-            <li>A quorum shall consist of no fewer than three Gentlemen; if the quorum cannot be met, the establishment visit shall be delayed until the following month.</li>
+            <li>
+              Each gathering shall occur at a different establishment, selected to ensure proper rotation and continued discovery.
+            </li>
+            <li>
+              A quorum shall consist of no fewer than three Gentlemen; if the quorum cannot be met, the establishment visit shall be delayed until the following month.
+            </li>
             <li>Attendance is encouraged, but not required or pressured.</li>
           </ol>
+        </section>
+
+        <section className="bylaws-article">
           <h2>Article III - Conduct</h2>
-          <ol>
+          <ol className="bylaws-list">
             <li>Gentlemen shall conduct themselves in a manner befitting their title.</li>
             <li>Arrive prepared to pay with cash; tipping shall be generous.</li>
             <li>Members shall respect the chosen rotation of venues and not unilaterally redirect the group.</li>
           </ol>
+        </section>
+
+        <section className="bylaws-article">
           <h2>Article IV - Traditions</h2>
-          <ol>
+          <ol className="bylaws-list">
             <li>A ceremonial round of shots is suggested but not mandatory upon arrival of quorum.</li>
             <li>Attendance is to be documented for the preservation of club history.</li>
             <li>Lore may be retold at future gatherings, with minor and tasteful embellishment permitted.</li>
           </ol>
+        </section>
+
+        <section className="bylaws-article">
           <h2>Article V - Amendments</h2>
-          <ol>
+          <ol className="bylaws-list">
             <li>These bylaws may be amended by unanimous agreement of the Distinguished Gentlemen present.</li>
           </ol>
-        </div>
-      </section>
+        </section>
+      </PageCard>
     </main>
   )
 }
@@ -1057,25 +1070,16 @@ function WheelPage({ bars, onLogout }) {
 
   return (
     <main className="static-page-shell">
-      <section className="static-page-card">
-        <p className="eyebrow">Pick helper</p>
+      <PageCard>
         <div className="top-controls">
           <button type="button" className="ghost" onClick={handleLogoutClick}>
             Log out
           </button>
           <nav className="top-nav" aria-label="Primary">
-            <NavLink to="/home" className={getNavLinkClassName}>
-              Home
-            </NavLink>
-            <NavLink to="/bars" className={getNavLinkClassName}>
-              Bars
-            </NavLink>
-            <NavLink to="/bylaws" className={getNavLinkClassName}>
-              Bylaws
-            </NavLink>
-            <NavLink to="/wheel" className={getNavLinkClassName}>
-              Wheel
-            </NavLink>
+              <NavLink to="/home" className={getNavLinkClassName}>Home</NavLink>
+              <NavLink to="/bars" className={getNavLinkClassName}>Bars</NavLink>
+              <NavLink to="/bylaws" className={getNavLinkClassName}>Bylaws</NavLink>
+              <NavLink to="/wheel" className={getNavLinkClassName}>Wheel</NavLink>
           </nav>
         </div>
 
@@ -1191,7 +1195,7 @@ function WheelPage({ bars, onLogout }) {
             </div>
           ) : null}
         </div>
-      </section>
+      </PageCard>
     </main>
   )
 }

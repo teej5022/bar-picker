@@ -132,14 +132,6 @@
   color: var(--accent);
 }
 
-.eyebrow {
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--accent);
-  margin-bottom: 10px;
-}
-
 .stats-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -402,6 +394,20 @@ button:focus-visible {
   display: grid;
   gap: 12px;
   text-align: left;
+}
+
+.site-logo-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 340px;
+  object-fit: contain;
+  margin: 0;
+}
+
+.site-banner {
+  width: 100%;
+  overflow: hidden;
 }
 
 .page-title {
