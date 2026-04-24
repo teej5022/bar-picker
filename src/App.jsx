@@ -1123,7 +1123,7 @@ function WheelPage({ bars, onLogout }) {
                       <path
                         d={segment.path}
                         fill={wheelColors[segment.idx % wheelColors.length]}
-                        fillOpacity={isSelected ? 0.85 : 0.52}
+                        fillOpacity={1}
                         stroke={isSelected ? 'var(--accent)' : '#ffffff'}
                         strokeWidth={isSelected ? 4 : 1.6}
                         className={isSelected ? 'wheel-segment-selected' : ''}
@@ -1595,7 +1595,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <BrowserRouter>
       <Routes>
         <Route
           path="/"
